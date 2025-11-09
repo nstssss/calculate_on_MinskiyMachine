@@ -8,10 +8,10 @@ class Register:
         return self.tape.read()
 
     def read_all(self):
-        return self.tape.read()
+        return self.tape.read_all_tape()
 
     def increment(self):
         self.tape.increment()
 
     def decrement(self):
-        self.tape.decrement()
+        return self.tape.decrement()
