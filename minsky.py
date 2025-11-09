@@ -130,11 +130,57 @@ class MinskyMachine:
         binary_result = self.registers[0].read_all()
         result = self.binary_to_number(binary_result)
         return result
-# Тест
+
+    """операция умножения"""
+    def mul(self, numbers: list[int]) -> int:
+        binaries = [self.number_to_binary(n) for n in numbers]
+
+        self.registers_count = len(numbers) + 2
+        self.registers = [0] * self.registers_count
+
+        register_names = [chr(ord('A') + i) for i in range(self.registers_count)]
+        data = {register_names[i]: binaries[i] for i in range(len(numbers))}
+        data[register_names[-2]] = [0]  # temp
+        data[register_names[-1]] = [0]  # result
+        self.load_numbers(data)
+
+        multiplicand = register_names[0]  # A
+        result_reg =register_names[-1]  # result
+        temp_reg = register_names[-2]  # temp
+
+        for i in range(1, len(numbers)):
+            multiplier = register_names[i]
+
+            self.get_reg(result_reg).tape.tape = [0]
+            self.get_reg(temp_reg).tape.tape = [0]
+
+            program = [
+                Transition(0, multiplier, [1, -1], Operations.decrement),  # 0
+                Transition(1, multiplicand, [2, 6], Operations.decrement),  # 1
+                Transition(2, result_reg, [3, 3], Operations.increment),  # 2
+                Transition(3, temp_reg, [1, 1], Operations.increment),  # 3
+                # индекс 4 и 5 не используются (можно оставить пропусками)
+                Transition(4, multiplicand, [4, 4], Operations.increment),
+                Transition(5, multiplicand, [5, 5], Operations.increment),
+                Transition(6, temp_reg, [7, 0], Operations.decrement),  # 6
+                Transition(7, multiplicand, [6, 6], Operations.increment),  # 7
+            ]
+            self.load_program(program)
+            self.current_index = 0
+            self.run()
+            self.get_reg(multiplicand).tape.tape = self.get_reg(result_reg).read_all().copy()
+
+        binary_result = self.get_reg(result_reg).read_all()
+        result = self.binary_to_number(binary_result)
+        return result
+
+
+    # Тест
 if __name__ == "__main__":
     machine = MinskyMachine(2, True)
     print("2 + 3 + 5 =", machine.add([2, 3, 5, 5]))
     print("105 - 15 = ", machine.sub([105, 15]))
+    print("3*3 = ", machine.mul([3, 3]))
     # print("2 + 3 =", machine.add_numbers([2, 3]))
     # print("5 + 7 =", machine.add_numbers([5, 7]))
     # print("0 + 4 =", machine.add_numbers([0, 4]))
