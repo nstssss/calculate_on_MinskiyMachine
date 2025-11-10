@@ -80,6 +80,8 @@ class MinskyMachine:
 
     """складывает числа на машине минского"""
     def add(self, numbers: list[int]) -> int:
+        if any(n < 0 for n in numbers):
+            return None
         binaries = [self.number_to_binary(n) for n in numbers]
         #загрузка чисел в регистры
         self.registers_count = len(numbers)
@@ -108,29 +110,34 @@ class MinskyMachine:
 
     """операция вычитания двух чисел"""
     def sub(self, numbers: list[int]) -> int:
+        if any(n < 0 for n in numbers):
+            return None
+        binaries = [self.number_to_binary(n) for n in numbers]
+        self.registers_count = len(numbers)
+        self.registers = [0] * self.registers_count
+        register_names = [chr(ord('A') + i) for i in range(self.registers_count)]
+        data = {register_names[i]: binaries[i] for i in range(len(numbers))}
+        self.load_numbers(data)
 
-        self.registers = [0] * 2
-        self.registers_count = 2
-        a = numbers[0]
-        b = numbers[1]
-        bin_a = self.number_to_binary(a)
-        bin_b = self.number_to_binary(b)
-        self.load_numbers({"A": bin_a, "B": bin_b})
-
-        #программа:
-        program = [
-            Transition(0, "B", [1, -1], Operations.decrement),  # если B не ноль -> 1
-            Transition(1, "A", [0, 0], Operations.decrement),  # уменьшаем A, возвращаемся
-        ]
-        self.load_program(program)
-        self.current_index = 0
-        self.run()
+        for i in range(1, self.registers_count):
+            minuend = register_names[0] # из чего вычитаем
+            subtrahend = register_names[i] #что вычитаем
+            #программа:
+            program = [
+                Transition(0, subtrahend, [1, -1], Operations.decrement),
+                Transition(1, minuend, [0, 0], Operations.decrement),
+            ]
+            self.load_program(program)
+            self.current_index = 0
+            self.run()
         binary_result = self.registers[0].read_all()
         result = self.binary_to_number(binary_result)
         return result
 
     """операция умножения"""
     def mul(self, numbers: list[int]) -> int:
+        if any(n < 0 for n in numbers):
+            return None
         binaries = [self.number_to_binary(n) for n in numbers]
 
         self.registers_count = len(numbers) + 2
@@ -172,8 +179,9 @@ class MinskyMachine:
         return result
 
     """операция деления"""
-
     def div(self, numbers: list[int]) -> int:
+        if any(n < 0 for n in numbers):
+            return None
         n = len(numbers)
         self.registers_count = n + 3  # числа + temp + quotient + result
         self.registers = [0] * self.registers_count
@@ -220,7 +228,8 @@ class MinskyMachine:
 if __name__ == "__main__":
     machine = MinskyMachine(2, True)
     print("2 + 3 + 5 =", machine.add([2, 3, 5, 5]))
-    print("105 - 15 = ", machine.sub([105, 15]))
+    print("105 - 15 = ", machine.sub([105, 15, 10]))
     print("3*3 = ", machine.mul([3, 3]))
-    print("20 / 5 / 4 = ", machine.div([100, 4, 5]))
+    print("20 / 5 / 4 = ", machine.div([2, 5, 5, 5]))
+    print ( machine.add([-1, 2]))
 
