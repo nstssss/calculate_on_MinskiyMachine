@@ -92,7 +92,7 @@ class MinskyMachine:
             donor = register_names[i]  # что добавляем
             target = register_names[0]  # к чему добавляем
 
-            # Программа: переносим все единицы из donor в target
+            # Программа
             program = [
                 Transition(0, donor, [1, -1], Operations.decrement),
                 Transition(1, target, [0, 0], Operations.increment),
@@ -100,8 +100,6 @@ class MinskyMachine:
 
             self.load_program(program)
             self.current_index = 0
-
-            # Выполняем до тех пор, пока donor не станет пустым
             self.run()
         #запись результата
         binary_result = self.registers[0].read_all()
@@ -119,7 +117,7 @@ class MinskyMachine:
         bin_b = self.number_to_binary(b)
         self.load_numbers({"A": bin_a, "B": bin_b})
 
-        #Программа:
+        #программа:
         program = [
             Transition(0, "B", [1, -1], Operations.decrement),  # если B не ноль -> 1
             Transition(1, "A", [0, 0], Operations.decrement),  # уменьшаем A, возвращаемся
@@ -153,13 +151,12 @@ class MinskyMachine:
 
             self.get_reg(result_reg).tape.tape = [0]
             self.get_reg(temp_reg).tape.tape = [0]
-
+            # программа
             program = [
                 Transition(0, multiplier, [1, -1], Operations.decrement),  # 0
                 Transition(1, multiplicand, [2, 6], Operations.decrement),  # 1
                 Transition(2, result_reg, [3, 3], Operations.increment),  # 2
                 Transition(3, temp_reg, [1, 1], Operations.increment),  # 3
-                # индекс 4 и 5 не используются (можно оставить пропусками)
                 Transition(4, multiplicand, [4, 4], Operations.increment),
                 Transition(5, multiplicand, [5, 5], Operations.increment),
                 Transition(6, temp_reg, [7, 0], Operations.decrement),  # 6
@@ -174,6 +171,50 @@ class MinskyMachine:
         result = self.binary_to_number(binary_result)
         return result
 
+    """операция деления"""
+
+    def div(self, numbers: list[int]) -> int:
+        n = len(numbers)
+        self.registers_count = n + 3  # числа + temp + quotient + result
+        self.registers = [0] * self.registers_count
+        register_names = [chr(ord('A') + i) for i in range(self.registers_count)]
+
+        data = {register_names[i]: self.number_to_binary(numbers[i]) for i in range(n)}
+        data[register_names[-3]] = [0]  # temp
+        data[register_names[-2]] = [0]  # quotient
+        data[register_names[-1]] = [0]  # result
+        self.load_numbers(data)
+
+        dividend_reg = self.get_reg(register_names[0])
+
+        for i in range(1, n):
+            divisor_reg = self.get_reg(register_names[i])
+            temp_reg = self.get_reg(register_names[-3])
+            quotient_reg = self.get_reg(register_names[-2])
+            result_reg = self.get_reg(register_names[-1])
+
+            temp_reg.tape.tape = [0]
+            quotient_reg.tape.tape = [0]
+            result_reg.tape.tape = [0]
+
+            # цикл делени
+            while self.binary_to_number(dividend_reg.read_all()) >= self.binary_to_number(divisor_reg.read_all()):
+                # вычитаем divisor из dividend побитово
+                for _ in range(self.binary_to_number(divisor_reg.read_all())):
+                    dividend_reg.decrement()
+                # увеличение частного
+                quotient_reg.increment()
+
+            # перенос частного в result
+            for _ in range(self.binary_to_number(quotient_reg.read_all())):
+                result_reg.increment()
+
+            # подготовка к следующему делителю
+            dividend_reg.tape.tape = result_reg.read_all().copy()
+            result_reg.tape.tape = [0]
+
+        result = self.binary_to_number(dividend_reg.read_all())
+        return result
 
     # Тест
 if __name__ == "__main__":
@@ -181,6 +222,5 @@ if __name__ == "__main__":
     print("2 + 3 + 5 =", machine.add([2, 3, 5, 5]))
     print("105 - 15 = ", machine.sub([105, 15]))
     print("3*3 = ", machine.mul([3, 3]))
-    # print("2 + 3 =", machine.add_numbers([2, 3]))
-    # print("5 + 7 =", machine.add_numbers([5, 7]))
-    # print("0 + 4 =", machine.add_numbers([0, 4]))
+    print("20 / 5 / 4 = ", machine.div([100, 4, 5]))
+
