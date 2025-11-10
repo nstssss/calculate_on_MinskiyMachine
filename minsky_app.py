@@ -64,15 +64,18 @@ class Minsky_app(QMainWindow):
 
         return tab
 
+    """Обработка ввода и выполнение расчёта"""
     def run_operation(self, input_field, result_label, op_symbol):
-        """Обработка ввода и выполнение расчёта"""
         text = input_field.toPlainText().strip()
         if not text:
-            QMessageBox.warning(self, "Ошибка ввода", "Введите хотя бы одно число.")
+            QMessageBox.warning(self, "Ошибка ввода", "Пустое поле")
             return
 
         try:
             numbers = list(map(int, text.split()))
+            if (len(numbers) < 2):
+                QMessageBox.warning(self, "Ошибка ввода", "Для выполнения операции должно быть минимум 2 числа")
+                return
         except ValueError:
             QMessageBox.critical(self, "Ошибка", "Можно вводить только целые числа!")
             return
