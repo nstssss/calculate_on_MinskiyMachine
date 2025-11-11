@@ -11,7 +11,7 @@ from minsky import MinskyMachine
 class Minsky_app(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.machine = MinskyMachine(2, True)
+        self.machine = MinskyMachine()
         self.init_ui()
 
     def init_ui(self):

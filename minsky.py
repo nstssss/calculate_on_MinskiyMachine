@@ -4,11 +4,10 @@ from transit import *
 '''Реализация машины Минского и  калькулятора чисел на ней'''
 class MinskyMachine:
     """конструктор класса"""
-    def __init__(self, registers_count: int, new_register: bool):
+    def __init__(self, registers_count: int = 0):
         self.registers = [0] * registers_count
         self.current_index = 0
         self.registers_count = registers_count
-        self.new_register = new_register
 
     """загрузка чисел в регистры"""
     def load_numbers(self, numbers: dict):
@@ -54,11 +53,9 @@ class MinskyMachine:
         while self.current_index != -1 and self.current_index <= (len(self.program) - 1):
             self.step()
 
-        i = 0
-        if self.new_register:
-            i = len(self.registers) - 1
-
-        binary_list = self.registers[i].read_all()
+        if not self.registers:
+            return 0
+        binary_list = self.registers[0].read_all()
         return self.binary_to_number(binary_list)
 
     """перевод числа из 2-ой СС в 10"""
@@ -81,6 +78,8 @@ class MinskyMachine:
     """складывает числа на машине минского"""
     def add(self, numbers: list[int]) -> int:
         if any(n < 0 for n in numbers):
+            return None
+        if not all(isinstance(n, int) for n in numbers):
             return None
         binaries = [self.number_to_binary(n) for n in numbers]
         #загрузка чисел в регистры
@@ -112,6 +111,8 @@ class MinskyMachine:
     def sub(self, numbers: list[int]) -> int:
         if any(n < 0 for n in numbers):
             return None
+        if not all(isinstance(n, int) for n in numbers):
+            return None
         binaries = [self.number_to_binary(n) for n in numbers]
         self.registers_count = len(numbers)
         self.registers = [0] * self.registers_count
@@ -137,6 +138,8 @@ class MinskyMachine:
     """операция умножения"""
     def mul(self, numbers: list[int]) -> int:
         if any(n < 0 for n in numbers):
+            return None
+        if not all(isinstance(n, int) for n in numbers):
             return None
         binaries = [self.number_to_binary(n) for n in numbers]
 
@@ -182,6 +185,8 @@ class MinskyMachine:
     def div(self, numbers: list[int]) -> int:
         if any(n < 0 for n in numbers):
             return None
+        if not all(isinstance(n, int) for n in numbers):
+            return None
         n = len(numbers)
         self.registers_count = n + 3  # числа + temp + quotient + result
         self.registers = [0] * self.registers_count
@@ -224,12 +229,4 @@ class MinskyMachine:
         result = self.binary_to_number(dividend_reg.read_all())
         return result
 
-    # Тест
-if __name__ == "__main__":
-    machine = MinskyMachine(2, True)
-    print("2 + 3 + 5 =", machine.add([2, 3, 5, 5]))
-    print("105 - 15 = ", machine.sub([105, 15, 10]))
-    print("3*3 = ", machine.mul([3, 3]))
-    print("20 / 5 / 4 = ", machine.div([2, 5, 5, 5]))
-    print ( machine.add([-1, 2]))
 
