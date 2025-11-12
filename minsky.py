@@ -90,13 +90,15 @@ class MinskyMachine:
         self.load_numbers(data)
 
         for i in range(1, self.registers_count):
-            donor = register_names[i]  # что добавляем
-            target = register_names[0]  # к чему добавляем
+            second_summand = register_names[i]  # что добавляем
+            first_summand = register_names[0]  # к чему добавляем
 
             # Программа
             program = [
-                Transition(0, donor, [1, -1], Operations.decrement),
-                Transition(1, target, [0, 0], Operations.increment),
+                # декремент второго слагаемого
+                Transition(0, second_summand, [1, -1], Operations.decrement),
+                # инкремент первого слагаемого
+                Transition(1, first_summand, [0, 0], Operations.increment),
             ]
 
             self.load_program(program)
@@ -113,6 +115,7 @@ class MinskyMachine:
             return None
         if not all(isinstance(n, int) for n in numbers):
             return None
+        # загрузка чисел в регистры
         binaries = [self.number_to_binary(n) for n in numbers]
         self.registers_count = len(numbers)
         self.registers = [0] * self.registers_count
@@ -125,7 +128,9 @@ class MinskyMachine:
             subtrahend = register_names[i] #что вычитаем
             #программа:
             program = [
+                # декримент вычитаемого
                 Transition(0, subtrahend, [1, -1], Operations.decrement),
+                # декримент уменьшаемого
                 Transition(1, minuend, [0, 0], Operations.decrement),
             ]
             self.load_program(program)
@@ -163,14 +168,22 @@ class MinskyMachine:
             self.get_reg(temp_reg).tape.tape = [0]
             # программа
             program = [
-                Transition(0, multiplier, [1, -1], Operations.decrement),  # 0
-                Transition(1, multiplicand, [2, 6], Operations.decrement),  # 1
-                Transition(2, result_reg, [3, 3], Operations.increment),  # 2
-                Transition(3, temp_reg, [1, 1], Operations.increment),  # 3
+                # декремент регистра множителя B
+                Transition(0, multiplier, [1, -1], Operations.decrement),
+                # декремент множимого A
+                Transition(1, multiplicand, [2, 6], Operations.decrement),
+                # инкримент результата E
+                Transition(2, result_reg, [3, 3], Operations.increment),
+                # инкримент временного регистра C
+                Transition(3, temp_reg, [1, 1], Operations.increment),
+                #резервный переход
                 Transition(4, multiplicand, [4, 4], Operations.increment),
+                # резервный переход
                 Transition(5, multiplicand, [5, 5], Operations.increment),
-                Transition(6, temp_reg, [7, 0], Operations.decrement),  # 6
-                Transition(7, multiplicand, [6, 6], Operations.increment),  # 7
+                # декремент временного регистра D для восстановления A
+                Transition(6, temp_reg, [7, 0], Operations.decrement),
+                # восстановление множимоего A
+                Transition(7, multiplicand, [6, 6], Operations.increment),
             ]
             self.load_program(program)
             self.current_index = 0
@@ -228,5 +241,3 @@ class MinskyMachine:
 
         result = self.binary_to_number(dividend_reg.read_all())
         return result
-
-

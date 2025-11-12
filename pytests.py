@@ -54,7 +54,7 @@ class Test_limits:
         assert machine.div([19232322, 2351]) == 8180
 
 ''' Тесты для исключельных значений'''
-class Test_exceptions():
+class Test_exceptions:
     """ тесты для операции сложения"""
     def test_add(self, machine):
         assert machine.add([-114, -11, -110, -120]) == None
