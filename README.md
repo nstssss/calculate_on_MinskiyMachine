@@ -11,15 +11,7 @@
 - Операцию сложения целых неотрицательных чисел
 
 ## Структура проекта
-
-minsky-calculator/
-├── minsky.py          # Основной класс машины Минского
-├── register.py        # Класс регистра
-├── tape.py           # Класс ленты 
-├── transit.py        # Классы операций и переходов
-├── minsky_app.py.py           # Графический интерфейс
-├── pytests.py   # Тесты
-└── requirements.txt  # Зависимости
+![img.png](img.png)
 ## Основные классы
 
 ### MinskyMachine
@@ -65,7 +57,11 @@ python minsky_app.py
 ```bash
 python test_minsky.py
 ```
+Запуск докера:
+```bash
+docker run -it -v "C:\Users\user\minsky_db:/data" minsky-app
 
+```
 ## Предварительные требования
 
 - Python 3.8+
