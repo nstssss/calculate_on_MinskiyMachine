@@ -75,7 +75,7 @@ class MinskyMachine:
             num //= 2
         return bits[::-1]
 
-    """складывает числа на машине минского"""
+    """операция сложения"""
     def add(self, numbers: list[int]) -> int:
         if any(n < 0 for n in numbers):
             return None
